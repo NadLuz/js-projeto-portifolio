@@ -113,3 +113,167 @@ setTimeout(() => {
   homeSection.style.opacity = '1';
   homeSection.style.transform = 'translateY(0)';
 }, 100);
+
+// ===== Animação das seções
+// Seleciona as animações e aplica 'fade-in' ao atualizar
+const sections = document.querySelectorAll ('section');
+
+sections.forEach((section, index) => {
+    section.style.opacity = '0';
+    section.style.transition = 'opacity 1s, transform 1s';
+
+    // Aplica diferente transformações de acordo com o índice da seção
+    if (index !== 0){
+        if(index === 1) section.style.transform = 'translateY(100px)';
+        else if (index === 2) section.style.transform = 'scale(0.8)';
+        else if (index === 3) section.style.transform = 'rotateY(90deg)';
+    }
+});
+
+// 'Observer' para animar as seções ao rolar a página
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'none';
+      }
+    });
+  });
+  
+  // 'Observer' cada seção para aplicar a animação
+  sections.forEach((section) => observer.observe(section));
+  
+  // ================= BOTÃO DE VOLTAR AO TOPO =================
+  // Adiciona um evento de clique ao botão de voltar ao topo
+  document.querySelector('.top a').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Rola suavemente para o topo da página
+  });
+
+  // ================= CARROSSEL DE PROJETOS =================
+// Seleciona os elementos do carrossel
+const carouselSlides = document.querySelector('.carousel-slides');
+const slides = document.querySelectorAll('.carousel-slide');
+const prevButton = document.querySelector('.carousel-button.prev');
+const nextButton = document.querySelector('.carousel-button.next');
+let currentSlide = 0;
+let autoSlideInterval;
+
+// Função para exibir o slide atual
+function showSlide(slideIndex) {
+  slides.forEach(slide => {
+    slide.classList.remove('active');
+    slide.style.display = 'none';
+  });
+
+  // Ajusta o índice do slide para garantir que ele esteja dentro dos limites
+  if (slideIndex < 0) currentSlide = slides.length - 1;
+  else if (slideIndex >= slides.length) currentSlide = 0;
+  else currentSlide = slideIndex;
+
+  // Exibe o slide atual
+  slides[currentSlide].classList.add('active');
+  slides[currentSlide].style.display = 'flex';
+  updateSlidePosition();
+}
+
+// Função para atualizar a posição do carrossel
+function updateSlidePosition() {
+  const slideWidth = slides[0].offsetWidth;
+  carouselSlides.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
+}
+
+// Função para avançar para o próximo slide
+function nextSlide() {
+  showSlide(currentSlide + 1);
+  resetAutoSlide(); // Reinicia o intervalo de transição automática
+}
+
+// Função para voltar ao slide anterior
+function prevSlide() {
+  showSlide(currentSlide - 1);
+  resetAutoSlide(); // Reinicia o intervalo de transição automática
+}
+
+// Função para iniciar a transição automática dos slides
+function startAutoSlide() {
+  autoSlideInterval = setInterval(nextSlide, 5000); // Avança o slide a cada 5 segundos
+}
+
+// Função para reiniciar a transição automática
+function resetAutoSlide() {
+  clearInterval(autoSlideInterval);
+  startAutoSlide();
+}
+
+// Adiciona eventos de clique aos botões de navegação do carrossel
+nextButton.addEventListener('click', nextSlide);
+prevButton.addEventListener('click', prevSlide);
+
+// Inicializa o carrossel ao carregar a página
+window.addEventListener('load', () => {
+  showSlide(currentSlide);
+  startAutoSlide();
+
+  // Atualiza a posição do carrossel ao redimensionar a janela
+  window.addEventListener('resize', () => {
+    updateSlidePosition();
+  });
+});
+
+// Pausa a transição automática ao passar o mouse sobre o carrossel
+carouselSlides.parentElement.addEventListener('mouseenter', () => {
+  clearInterval(autoSlideInterval);
+});
+
+// Retoma a transição automática ao remover o mouse do carrossel
+carouselSlides.parentElement.addEventListener('mouseleave', startAutoSlide);
+
+// ================= FORMULÁRIO DE CONTATO =================
+// Seleciona o formulário de contato e a mensagem de agradecimento
+const contactForm = document.getElementById('contactForm');
+const thankYouMessage = document.getElementById('thankYouMessage');
+
+// Adiciona um evento de envio ao formulário
+contactForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  thankYouMessage.style.display = 'block'; // Exibe a mensagem de agradecimento
+
+  // Envia os dados do formulário usando Fetch API
+  const formData = new FormData(contactForm);
+  fetch(contactForm.action, {
+    method: 'POST',
+    body: formData,
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(response => {
+    if (response.ok) {
+      setTimeout(() => window.location.reload(), 2000); // Recarrega a página após 2 segundos
+    } else {
+      alert('Erro ao enviar formulário. Tente novamente.');
+    }
+  })
+  .catch(() => alert('Erro na conexão. Tente novamente.'));
+});
+
+// ================= ANIMAÇÃO DA SEÇÃO "SOBRE MIM" =================
+// Seleciona a seção "Sobre Mim"
+const aboutSection = document.querySelector('.about');
+
+// Função para verificar se a seção está visível na tela
+function checkAboutVisibility() {
+  const rect = aboutSection.getBoundingClientRect();
+  const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // Verifica se a seção está dentro da área visível da tela
+  if (rect.top <= windowHeight * 0.75 && rect.bottom >= 0) {
+    aboutSection.classList.add('visible'); // Adiciona a classe "visible"
+    window.removeEventListener('scroll', checkAboutVisibility); // Remove o listener após a animação
+  }
+}
+
+// Adiciona um listener para o evento de scroll
+window.addEventListener('scroll', checkAboutVisibility);
+
+// Verifica a visibilidade ao carregar a página (caso a seção já esteja visível)
+checkAboutVisibility();
